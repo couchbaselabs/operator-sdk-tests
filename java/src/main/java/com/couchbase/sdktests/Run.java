@@ -16,13 +16,9 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import java.io.FileInputStream;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import static com.couchbase.client.java.kv.MutateInSpec.upsert;
@@ -57,16 +53,7 @@ public class Run {
         if (cmd.hasOption("cafile")) {
             // add cert to cluster options
             String caFile = cmd.getOptionValue("cafile");
-            List<X509Certificate> certs = new ArrayList<>();
-            FileInputStream fis = new FileInputStream(caFile);
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            while (fis.available() > 0) {
-                X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
-                System.out.println(cert.toString());
-                certs.add(cert);
-            }
-            fis.close();
-            env = ClusterEnvironment.builder().securityConfig(SecurityConfig.enableTls(true).trustCertificates(certs)).build();
+            env = ClusterEnvironment.builder().securityConfig(SecurityConfig.enableTls(true).trustCertificate(Paths.get(caFile))).build();
         } else {
             env = ClusterEnvironment.builder().build();
         }
