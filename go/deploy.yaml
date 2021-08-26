@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gosdk
+data:
+  ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMrekNDQWVPZ0F3SUJBZ0lSQUp3cWE2aDJBZmNRYVBhZjFRMnNiOTR3RFFZSktvWklodmNOQVFFTEJRQXcKRnpFVk1CTUdBMVVFQXhNTVEyOTFZMmhpWVhObElFTkJNQjRYRFRJd01EY3lOREE0TXpnd09Wb1hEVE13TURjeQpOREE0TXpnd09Wb3dGekVWTUJNR0ExVUVBeE1NUTI5MVkyaGlZWE5sSUVOQk1JSUJJakFOQmdrcWhraUc5dzBCCkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQTRKTDgxMUZXbnF1NUFxMUVoV0RKcjJuVSt3NVk0ei9hYlV5K3Z3cnEKUFJNVUhqM0x0SHFzRklKVG1mZXlFUFhBYWxKVzZueEJadnBMbnVnQTBlUnhZV0FUSTY1bE1paHpQaC9SVUFPcwpiMVJxWmtuYWZrZkVGWnBpdHQ3ZFlHSFFIU2d1R2RZbGphM3d2U2prdTRmZ0JKaUNqb0w1K1IvSVNocUwxMzZFClhxQzFlbk1iMlliK2sxNjNEa2NSNjdDTkxFUmg4K0dlTkZrdExyZkJ2dm1DVkNCU1ZqY1E2WXE4bVV2WGVUTloKK2VHRGt2alNhbG05TWxvV1lzQysrOTJNeU43VVBBamJvY2t2QnZ0N2NXN21OdExiZTdVZlZjV3lncFJtVWRBQwpmR3pMMVY1SWFwM2c2UGRITG9ya1RPVGl3bCszVmpRYTEzRkpRazJoTXdQRkRRSURBUUFCbzBJd1FEQU9CZ05WCkhROEJBZjhFQkFNQ0FRWXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVUvSndpcUhGMXlrRkYKOVlOVXdQL0REQ0ZGV09Vd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFNcnFNWGtqRVBKd0l3M3FtSTNtWFkxVwppYlBaK05CbjlxaVhpbGppUW9iMFYxckFwV3AzekZTRGtWWGhMSGVyRHdzaW85YU5LMDdwU3NSYzVzbi9oL3BwClhTUDNYVFIrc3Y1L0hGbktuRWUxVlRiYmtDQ1dpc1huMUhKei9JeHAxOGlxY1ZIYkdGeFZpMFB5Rk9xeXllcUEKWWVNZWlZM0dVRGJIYk1iQU11Y0RwVllIbGx0cGNQajNQMHlmOE0xK2N6TzRtNnhKUkhJSE02N1YwWnFiK3gyWgpwT0JDbHZzdW10TUJyM0VLZ2V2TUFqemdqbUhHYy9IUzVxYTJmQytpd2xhY2ROdERIbmljRHpuV2R3T1ZzcXVHCnNwc1gxK0JoSEtqMUtLQ0d2Qkg3dmlLNTVqclhIMThnUXp6NDJSUC94blBoMmwyamwxQW1QSE9Nb2RZRWNxWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gosdk
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: gosdk
+        image: golang:1.13.3
+        command:
+        - sh
+        - -c
+        args:
+        - mkdir test; cd test; go mod init test; go run github.com/spjmurray/gosdk -connection couchbases://test-couchbase-y5uv6-srv.default -username Administrator -password password -cafile /etc/gosdk/ca.pem
+        volumeMounts:
+        - name: etc
+          mountPath: /etc/gosdk
+          readOnly: true
+      volumes:
+      - name: etc
+        secret:
+          secretName: gosdk
