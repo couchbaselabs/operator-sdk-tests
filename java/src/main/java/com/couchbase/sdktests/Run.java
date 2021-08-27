@@ -50,7 +50,7 @@ public class Run {
         // check if CA file is provided
         if (cmd.hasOption("cafile")) {
             String caFile = cmd.getOptionValue("cafile");
-            env = DefaultCouchbaseEnvironment.builder().sslEnabled(true).certAuthEnabled(true).sslKeystoreFile(caFile).build();
+            env = DefaultCouchbaseEnvironment.builder().sslEnabled(true).sslKeystoreFile(caFile).build();
         } else {
             env = DefaultCouchbaseEnvironment.builder().build();
         }
