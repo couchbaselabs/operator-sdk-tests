@@ -19,6 +19,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -50,13 +54,23 @@ public class Run {
         // check if CA file is provided
         if (cmd.hasOption("cafile")) {
             String caFile = cmd.getOptionValue("cafile");
-            env = DefaultCouchbaseEnvironment.builder().sslEnabled(true).sslKeystoreFile(caFile).build();
+            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            ks.load(null, null);
+            FileInputStream fis = new FileInputStream(caFile);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            while (fis.available() > 0) {
+                Certificate cert = cf.generateCertificate(fis);
+                System.out.println(cert.toString());
+                ks.setCertificateEntry( UUID.randomUUID().toString().substring(0, 8), cert);
+            }
+            fis.close();
+            env = DefaultCouchbaseEnvironment.builder().sslEnabled(true).sslKeystore(ks).build();
         } else {
             env = DefaultCouchbaseEnvironment.builder().build();
         }
 
         // connect to cluster
-        Cluster cluster = CouchbaseCluster.create(connection);
+        Cluster cluster = CouchbaseCluster.create(env, connection);
         cluster.authenticate(username, password);
 
         // connect to bucket & default collection
